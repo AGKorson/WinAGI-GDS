@@ -498,44 +498,75 @@ namespace WinAGI.Common {
 
         /// <summary>
         /// Strips off any comments on the line. If trimline is true, the string
-        /// is also stripped of any leading or trailing blank space. If there is a
-        /// comment, it is passed back in the comment argument.
+        /// is also stripped of any leading or trailing blank space.
         /// </summary>
-        /// <param name="strLine"></param>
-        /// <param name="strComment"></param>
-        /// <param name="NoTrim"></param>
-        /// <returns>The passed string with any comment stripped off.</returns>
-        public static string StripComments(string line, ref string comment, bool trimline = true) {
-            int pos = -1;
-            bool inQuotes = false;
-            bool slash = false;
-            bool dblSlash = false;
-            int rolIgnore = -1;
-
-            if (line.Length == 0) {
+        /// <param name="line"></param>
+        /// <param name="comment"></param>
+        /// <param name="trimline"></param>
+        /// <returns>The passed string with any comment stripped off. If there is a
+        /// comment, it is passed back in the comment argument.</returns>
+        public static string StripComments(string line, out string comment, bool trimline = true) {
+            if (string.IsNullOrEmpty(line)) {
+                comment = "";
                 return "";
             }
 
-            // assume no comment
-            string retval = line;
-            comment = "";
-            while (pos < line.Length - 1) {
-                pos++;
+            int commentstart = FindCommentStart(line);
+
+            if (commentstart >= 0) {
+                // save the comment
+                comment = line[commentstart..].Trim();
+                // strip off the comment
+                return trimline ? line[..commentstart].Trim() : line[..commentstart];
+            }
+            else {
+                comment = "";
+                return trimline ? line.Trim() : line;
+            }
+        }
+
+        /// <summary>
+        /// Strips off any comments on the line. If trimline is true, the string
+        /// is also stripped of any leading or trailing blank space.
+        /// </summary>
+        /// <param name="line"></param>
+        /// <param name="trimline"></param>
+        /// <returns>The passed string with any comment stripped off.</returns>
+        public static string StripComments(string line, bool trimline = true) {
+            if (string.IsNullOrEmpty(line)) {
+                return "";
+            }
+
+            int commentstart = FindCommentStart(line);
+
+            if (commentstart >= 0) {
+                // strip off the comment
+                return trimline ? line[..commentstart].Trim() : line[..commentstart];
+            }
+            else {
+                return trimline ? line.Trim() : line;
+            }
+        }
+
+        private static int FindCommentStart(string line) {
+            if (!line.Contains('[') && !line.Contains('/')) {
+                return -1;
+            }
+
+            bool inQuotes = false;
+            bool slash = false;
+
+            for (int pos = 0; pos < line.Length; pos++) {
                 if (!inQuotes) {
                     // check for comment characters at this position
-                    if (line.Mid(pos, 2) == "//") {
-                        rolIgnore = pos + 1;
-                        dblSlash = true;
-                        break;
+                    if (line[pos] == '[') {
+                        return pos;
                     }
-                    else if (line.Substring(pos, 1) == "[") {
-                        rolIgnore = pos;
-                        break;
+                    if (line[pos] == '/' && pos + 1 < line.Length && line[pos + 1] == '/') {
+                        return pos;
                     }
-                    // slash codes never occur outside quotes
-                    slash = false;
                     // if this character is a quote mark, it starts a string
-                    inQuotes = line.ElementAt(pos) == '"';
+                    inQuotes = line[pos] == '"';
                 }
                 else {
                     // if last character was a slash, ignore this character
@@ -558,22 +589,7 @@ namespace WinAGI.Common {
                     }
                 }
             }
-            if (rolIgnore >= 0) {
-                // save the comment
-                comment = line[rolIgnore..].Trim();
-                // strip off the comment
-                if (dblSlash) {
-                    retval = line[..(rolIgnore - 1)];
-                }
-                else {
-                    retval = line[..rolIgnore];
-                }
-            }
-            if (trimline) {
-                // return the line, trimmed
-                retval = retval.Trim();
-            }
-            return retval;
+            return -1;
         }
 
         /// <summary>

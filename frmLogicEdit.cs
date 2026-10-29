@@ -864,6 +864,93 @@ namespace WinAGI.Editor {
             fctb.DecreaseIndent();
         }
 
+        private void fctb_AutoIndentNeeded(object sender, AutoIndentEventArgs e) {
+            string line = StripComments(e.LineText);
+            string prev = StripComments(e.PrevLineText);
+
+            switch (WinAGISettings.CodeStyle.Value) {
+            case LogicDecoder.AGICodeStyle.cstDefaultStyle:
+                // CodeStyle: Default
+                // if (a == 1)
+                //     {
+                //     blah;
+                //     }
+                // else
+                //     {
+                //     blah;
+                //     }
+
+                // check for non-standard 'if () {' 
+                // (in case user accidentally forgets to press ENTER before the '{')
+                if (Regex.IsMatch(line, @"^(if|else)\b.*$")) {
+                    if (line.EndsWith('{')) {
+                        // with brace; begin shifting
+                        e.ShiftNextLines = e.TabLength;
+                    }
+                    return;
+                }
+                // opening brace line
+                if (line.EndsWith('{')) {
+                    // shift this line, and all that follow
+                    e.Shift = e.TabLength;
+                    e.ShiftNextLines = e.TabLength;
+                    return;
+                }
+                // closing brace line
+                if (line.StartsWith('}')) {
+                    // unshift all lines that follow
+                    e.ShiftNextLines = -e.TabLength;
+                    return;
+                }
+                // check for an 'if' or 'else' statement above
+                if (Regex.IsMatch(prev, @"^(if|else)\b.*$") && !prev.EndsWith('{')) {
+                    // shift this line
+                    e.Shift = e.TabLength;
+                }
+                break;
+            case LogicDecoder.AGICodeStyle.cstAltStyle1:
+            case LogicDecoder.AGICodeStyle.cstAltStyle2:
+                // [ CodeStyle: Alternate 1
+                // if (a == 2) {
+                //     blah;
+                // }
+                // else {
+                //     blah;
+                // }
+                //
+                // [ CodeStyle: Alternate 2
+                // if (a == 3) {
+                //     blah;
+                // } else {
+                //     blah;
+                // }
+
+                // for indenting purposes these two codestyles get handled the
+                // same; always indent after a '{' and always outdent after a '}'
+
+                if (line.EndsWith('{') && line.StartsWith('}')) {
+                    // need to back up once, because FCTB will move it ahead later
+                    // by some dark magic even though no code here does it...
+                    e.Shift = -e.TabLength;
+                }
+                else {
+                    if (line.EndsWith('{')) {
+                        e.ShiftNextLines = e.TabLength;
+                    }
+
+                    else if (line.StartsWith('}')) {
+                        // IMPORTANT:
+                        // ShiftNextLines must be assigned before Shift.
+                        // Reversing the order causes incorrect indentation
+                        // after closing braces in FastColoredTextBox.
+                        e.ShiftNextLines = -e.TabLength;
+                        e.Shift = -e.TabLength;
+                    }
+                }
+                break;
+            }
+        }
+
         private void fctb_Enter(object sender, EventArgs e) {
             // !!! when form gets focus, it always sets focus to the control in
             // the Panel with TabIndex 0; to keep the current WinAGIFCTB in 

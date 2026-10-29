@@ -682,10 +682,10 @@
             rtfLogic2.CharWidth = 8;
             rtfLogic2.CommentPrefix = "[";
             rtfLogic2.ContextMenuStrip = cmEdit;
+            rtfLogic2.DefaultMarkerSize = 8;
             rtfLogic2.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic2.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic2.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
-            rtfLogic2.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic2.Hotkeys = resources.GetString("rtfLogic2.Hotkeys");
             rtfLogic2.IsReplaceMode = false;
             rtfLogic2.LineNumberStartValue = 0U;
@@ -694,6 +694,7 @@
             rtfLogic2.NoMouse = false;
             rtfLogic2.Paddings = new System.Windows.Forms.Padding(0);
             rtfLogic2.SelectionColor = System.Drawing.Color.FromArgb(60, 255, 255, 255);
+            rtfLogic2.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("rtfLogic2.ServiceColors");
             rtfLogic2.ShowCaretWhenInactive = true;
             rtfLogic2.ShowFoldingLines = true;
             rtfLogic2.Size = new System.Drawing.Size(600, 146);
@@ -702,10 +703,11 @@
             rtfLogic2.Zoom = 100;
             rtfLogic2.ToolTipNeeded += fctb_ToolTipNeeded;
             rtfLogic2.TextChanged += fctb_TextChanged;
-            rtfLogic2.TextChangedDelayed += fctb_TextChangedDelayed;
             rtfLogic2.TextChanging += fctb_TextChanging;
             rtfLogic2.SelectionChanged += fctb_SelectionChanged;
+            rtfLogic2.TextChangedDelayed += fctb_TextChangedDelayed;
             rtfLogic2.KeyPressed += fctb_KeyPressed;
+            rtfLogic2.AutoIndentNeeded += fctb_AutoIndentNeeded;
             rtfLogic2.Enter += fctb_Enter;
             rtfLogic2.KeyUp += fctb_KeyUp;
             rtfLogic2.MouseDoubleClick += fctb_MouseDoubleClick;
@@ -716,7 +718,7 @@
             // 
             cmEdit.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuERedo, mnuESep0, mnuECut, mnuEDelete, mnuECopy, mnuEPaste, mnuESelectAll, mnuESep1, mnuEBack, mnuEForward, mnuESep1a, mnuEFind, mnuEFindAgain, mnuEReplace, mnuESep2, mnuEListDefines, mnuEListCommands, mnuEViewSynonym, mnuESnippet, mnuEBlockCmt, mnuEUnblockCmt, mnuESep2a, mnuEOpenRes, mnuESep3, mnuEDocumentMap, mnuELineNumbers, mnuECharMap });
             cmEdit.Name = "contextMenuStrip1";
-            cmEdit.Size = new System.Drawing.Size(263, 546);
+            cmEdit.Size = new System.Drawing.Size(263, 524);
             cmEdit.Closed += cmEdit_Closed;
             cmEdit.Opening += cmEdit_Opening;
             // 
@@ -776,10 +778,10 @@
             rtfLogic1.CharWidth = 8;
             rtfLogic1.CommentPrefix = "[";
             rtfLogic1.ContextMenuStrip = cmEdit;
+            rtfLogic1.DefaultMarkerSize = 8;
             rtfLogic1.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic1.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic1.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
-            rtfLogic1.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic1.Hotkeys = resources.GetString("rtfLogic1.Hotkeys");
             rtfLogic1.IsReplaceMode = false;
             rtfLogic1.LineNumberStartValue = 0U;
@@ -788,16 +790,18 @@
             rtfLogic1.NoMouse = false;
             rtfLogic1.Paddings = new System.Windows.Forms.Padding(0);
             rtfLogic1.SelectionColor = System.Drawing.Color.FromArgb(60, 255, 255, 255);
+            rtfLogic1.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("rtfLogic1.ServiceColors");
             rtfLogic1.ShowCaretWhenInactive = true;
             rtfLogic1.Size = new System.Drawing.Size(600, 159);
             rtfLogic1.TabIndex = 0;
             rtfLogic1.Zoom = 100;
             rtfLogic1.ToolTipNeeded += fctb_ToolTipNeeded;
             rtfLogic1.TextChanged += fctb_TextChanged;
-            rtfLogic1.TextChangedDelayed += fctb_TextChangedDelayed;
             rtfLogic1.TextChanging += fctb_TextChanging;
             rtfLogic1.SelectionChanged += fctb_SelectionChanged;
+            rtfLogic1.TextChangedDelayed += fctb_TextChangedDelayed;
             rtfLogic1.KeyPressed += fctb_KeyPressed;
+            rtfLogic1.AutoIndentNeeded += fctb_AutoIndentNeeded;
             rtfLogic1.Enter += fctb_Enter;
             rtfLogic1.KeyUp += fctb_KeyUp;
             rtfLogic1.MouseDoubleClick += fctb_MouseDoubleClick;

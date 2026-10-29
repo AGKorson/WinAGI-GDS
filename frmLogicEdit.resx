@@ -127,20 +127,19 @@
   <data name="btnBack.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADCSURBVDhPrZNNCsIwEIW/hSAewV5BV7rxLL2FJ5hQBN0o
-        eAzPowdw7wlcSOWl1dakRCQ+CMy8nyFJU/g/rAC3BbuAuzfL1+KK0B3ASnA3sAPYAo7jZqkW57UyTLWQ
-        YFeoZqHSQZo80ZDNtJ0+D4QByCOvMh25A7fvEYCrP/s+5FWmI85QLXt9IizIq8wb7gE2aus6vQR5lRkc
-        4PsvO4gHBEfwXGJIdIShS0whusTsz+iFnIf0QsZTXq1Pk6bK+pl+xxOhgmY4ryNJYQAAAABJRU5ErkJg
-        gg==
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADASURBVDhPY2CgPqiXYmBoaAfSV4D0TwgGs0FiUuiq0UB9
+        FFDhayDdB8RGDAwT2SEYxAaJgeWi0HVBAUii/gEDQ5M2ugwCgORAajAMaZGEmq6DJoEFgNSA1IL0IAQ7
+        gIK9SAJA0PAflY8MQGpBehACl4HOM0bi49EMAiC1ID1w0PAXaCILlP0fPwYBkFqQHjhANgDMJ+ACTAPQ
+        vAAWw2MIhhewBSI+gBGIFEcjWIKShAQDFCRli8KVnBAWRZmJdAAAoYJmONlQlYsAAAAASUVORK5CYII=
 </value>
   </data>
   <data name="btnForward.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADBSURBVDhPrZNBCsIwEEX/QhCPYK+gK914lt7CE0woBd1U
-        8BieRw/g3hO4kMpPUhIm0YDxwcB0/vyhmabA/5EGMAdAboB5urA5a43uVkgLmAcgJ0A2wHnugjlrVmu1
-        y0NB7kC30kqAGnuSIf3ST18rIQN72EtPKB4BM0QFhRnV8+A8oXAFum1UyBAPYS89QXwBMvP5+D0Ie+nJ
-        DvhE/AbpgMIR9A6SI5SWqEmWWP0ZrVBzkSaqrvJE+Wfa7S8L7fqZNwYeZjjDZq1DAAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAC+SURBVDhPY2CgPqiXYmBoaAfSV4D0TwgGs0FiUuiq0UB9
+        FFDhayDdB8RGDAwT2SEYxAaJgeWi0HVBAUii/gEDQ5M2ugwCgORAajAMaZGEmq6DJoEFgNSA1IL0IAQ7
+        gIK9SAJooOE/Gr8XogchcBnoPGMkASwA2RCQWpAeOGj4CzSRBcr+jx+DAEgtSA8cIBuACyC7ANMAAl5A
+        DwMMLxAKRHSAEYgURyNYgpKEBAMUJWUYIJyZLApXcqLrIhsAAAYeZjiHLKNAAAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="btnCut.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
@@ -154,63 +153,64 @@
   <data name="btnCopy.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABiSURBVDhPzZBRCsAgDEM9+m7umNgZ02Z24IcPgkLbmFrK
-        BqpQmsr8NeH5NgxGS7AZ7peQZ3rdeJoZZdKL/ImxgZ3OgBnNuFq8ztT4lQBxBgwnQFn9NYiVTyDIJxBs
-        SLDWCdzwPGO9AYsmGQAAAABJRU5ErkJggg==
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABkSURBVDhPzZBRDgAREEMd3c1tiKE605gPH/uShlBVSnlA
+        E0rTmL42lYLPj8M2sjkCzTCvQp51M9LNjAqZm8cHygAbXQCzzfi0+DmHccs3QFwAww1Qtr8CYuUbCPIN
+        BA8a3PUHPvA8Y71d5XxhAAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="btnPaste.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB7SURBVDhPtY8BCsAwCAP79D6tP3M4W5ZpbIWxQJBOPbPW
-        fpI4H+UXRMTsvzOg9K7ud13LCLIZ62v1kNm0xhiDGiEE8CKnxkMO8MSrVAJgQ3opcwDESzrIBBAERMgO
-        sGopAUb37wUJy7sEKADUEvA08zei6wkSxavcH3UBZYeJ75XisbUAAAAASUVORK5CYII=
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB9SURBVDhPtY8BDsAgCAN9uk/zZyxM2SpUJVnWpEGHHF0p
+        P0mcj/IDItLtvw9PklrV9a56x0E7W1/r6CFAm73RWqNGCAFM5KVx0TP9NvKVANgj3bRyAMRN+pAJIAiI
+        kB3AaioBRvd3g4ThXQIUAHIJeJrxG9H5BAvFrdwfdQFlh4nvIWqpWgAAAABJRU5ErkJggg==
 </value>
   </data>
   <data name="btnDelete.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABTSURBVDhPvY7RCgAgCAP9/58uDIqyOUOkgx7y2kykiKZH
-        sQIA346hJzeoj0q8+QUqeQruHL/JFCg14UwJCtm7CwofDswXLDxh7qlAoZ7KSr4tiunbZ4h44b6fDAAA
-        AABJRU5ErkJggg==
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABVSURBVDhPvY7RDgAQDAP9/0+TSgjTlSWLS/Zgp6WUJCoG
+        WEGgd/vSkwvS30q8/QEreQqubL/BRAtATnhMpISF7NmFhTdH9hMVHij3VACklzKTbw/dadtniHilaeJA
+        AAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="btnUndo.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABGSURBVDhPY2AYBUSAhv/IuKEBRGMF6BIwTegApyHIGrAq
-        QAJY5ZGdSghgVYPqV3RZVIBVHt0ArIrwhQFhANFIpuZRgBsAAECjM+EoFDSnAAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABISURBVDhPY2AYBUSAhv/IuKEBRGMF6BIwTegApyHIGrAq
+        QAJY5ZGdSghgVYPqV3RZVIBVHt0ArIoYQOI4woAwgGgkU/MowA0AQKMz4UmLJlIAAAAASUVORK5CYII=
 </value>
   </data>
   <data name="btnRedo.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABGSURBVDhPY2AYBSigoaHhPwMDOiYSIDSjA2zi6HzcgkgA
-        Jo/NQLgEIYDXa1gFkQCyZixqcYcBCKBrxqWOoeE/xKBRQFcAAGDzM+FQ916wAAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABHSURBVDhPY2AYBSigoaHhP5BEw0QChGZ0gE0cnQ8GWAWR
+        AEwem4FggFUQDeD1GlZBJICsGYta3GEAAuiacakDSkAMGgV0BQBg8zPh0iQsGAAAAABJRU5ErkJggg==
 </value>
   </data>
   <data name="btnFind.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABaSURBVDhPzY4xDgAgCAP9/6cxLkqBMwwOXtKlrcUxHmNO
-        HT9hi6JIfoIukS/4ki9HD0f8N2UAfCEWOtLHcIUyGaHSLWsNbF2yMwDq5OWFCuxhEMBeNHGg0AdM0vaz
-        TXm8aKUAAAAASUVORK5CYII=
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABeSURBVDhPzY4xCgAgDAP9/6cVO0ib9qSDgwdBSELqGI+Z
+        Th0/MTf7bfoJukR+wJd8WT0c8d8MA+AHtNDRwQy4QlkYodItaw0cXTJDTS2op3l5oQJ7GAjYUxMHCn3A
+        AtL2s01KV83OAAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="btnIndent.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACBSURBVDhPzZLRDYAgEEM7pRM4gRM4MhNw5kAIlhrQ+GGT
-        l5iG6xUVIQS7w8UeAzbaYQDDkBrAUp5SCkgPwAXlST5qEA1YktEGdtsUPpwPbwasNWQ6wIcy+4k3ifNX
-        eNOgnKmf8ek76AJUXeUp/eY/6Le1nqssYqYa8JAMYFyj7c4BZ/cRj3lAC1YAAAAASUVORK5CYII=
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB/SURBVDhPvZCLCcAgEENvyk7QCTpBR3YCrfGHxBRFSgMP
+        JHi5qDnnwhsQe4yx0Q+b2TSkBbCUp5QC0iFu61Ge5KMGPqYdyegDh20KDOfLV+RsIcsBGMrcBTTx60/Y
+        aVDvgK0/GAJUXeUplQbjNuVJfmkA1UXMUgMekgEMNNsOHmf3EY8qZyQSAAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="btnOutdent.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACBSURBVDhPrZCBDYAwCASZ0gk6gRM4uW+wtEKFlhg/+dQ8
-        cBCJJgKAMUtLhvnJQe5OJS/z1If50faywL9dsAE4O1GKa9fGAqJdmBWSBvBmokPMoGIgK326QGqPapD/
-        BwYga03YvnUtUrjNywK/L2nkMfOUuqA3zmS59oKxNyUZXAIuH4zNttIh5vIAAAAASUVORK5CYII=
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACISURBVDhPnZABDoAwCAN5pS/wBb7Al6vbShgwthEvqYuF
+        dkaiBW/Be2k4XI9cSdtURF6EhOuhFXkTAVOL8OBFSJjoKM9HGnm4FxbPoos7UZIuqDcT3axadJqSHb++
+        gGcdGPl/YAraG6M9P5uhA9EtGQFTi/DgRUjYN2tPFlf0TqA9v5uCg9uCDx+MzbZY8xuBAAAAAElFTkSu
+        QmCC
 </value>
   </data>
   <data name="btnComment.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
@@ -239,17 +239,17 @@
   <data name="btnMsgClean.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABtSURBVDhPpZAJCsAwCAT36T7Nn7VsWoWYQ5sOSIJxFgmu
-        nyA2KgjQingAgFKZPARUiDIpbzCTu4AdK5mkG+xkMu++ZDKZbkAqMhleReSpgky6CZNV1e8ZHhBlOzNa
-        wEr+FHAiE9jwiUzyb064AXMdQ6p905sYAAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABuSURBVDhPpZABDoAgCEU5OkfjZtWnYFMhyN7GVPT9Men4
+        Cc2NDkykBTyArkanTF4COswyaE8QyeoNp4RMBuUEbzKIuw+VDMIJQEcGyy0z39WQwfDCZBHxfYUHzLKt
+        FRqQyZ8CdmRA9nhHBvU3F5xzHUOqC9lG4wAAAABJRU5ErkJggg==
 </value>
   </data>
   <data name="btnCompile.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB6SURBVDhPtZJLDsAgCEQ5ukdx0QO6d0EDFaXUv+lLiFGc
-        CSgAf+D9haMAAIo6dIGJoawppgwINjEG02LFx2BFLEyLWxfkvJVnEPEJK3gRQ9OExc4lkXp1vR+1oZOl
-        AvOFPYMaR18o5Gp2xHmsSbxVgR5raWnZ5LiNHjeFEvfGu9ur2wAAAABJRU5ErkJggg==
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB/SURBVDhPtZJBEoAgCEU9ukdx0QHbt0ghzB9mUE5v5o+F
+        H4I0hD9IadktFRvpHjIw29pWkasAwUVUAXcy0BWgmDZZuJNHhhof7TOlz0P0jLpQOpF4ByfHKEnw1/Hd
+        GgM3WwfqCMHjYuoIK2c3onfglz91gNc6yEi0ap/F3BhPZIUS98YTxuFjAAAAAElFTkSuQmCC
 </value>
   </data>
   <metadata name="cmEdit.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -258,8 +258,44 @@
   <data name="rtfLogic2.Hotkeys" xml:space="preserve">
     <value>Tab=IndentIncrease, Escape=ClearHints, PgUp=GoPageUp, PgDn=GoPageDown, End=GoEnd, Home=GoHome, Left=GoLeft, Up=GoUp, Right=GoRight, Down=GoDown, Insert=ReplaceMode, Del=DeleteCharRight, F3=FindNext, Shift+Tab=IndentDecrease, Shift+PgUp=GoPageUpWithSelection, Shift+PgDn=GoPageDownWithSelection, Shift+End=GoEndWithSelection, Shift+Home=GoHomeWithSelection, Shift+Left=GoLeftWithSelection, Shift+Up=GoUpWithSelection, Shift+Right=GoRightWithSelection, Shift+Down=GoDownWithSelection, Shift+Insert=Paste, Shift+Del=Cut, Ctrl+Back=ClearWordLeft, Ctrl+Space=AutocompleteMenu, Ctrl+End=GoLastLine, Ctrl+Home=GoFirstLine, Ctrl+Left=GoWordLeft, Ctrl+Up=ScrollUp, Ctrl+Right=GoWordRight, Ctrl+Down=ScrollDown, Ctrl+Insert=Copy, Ctrl+Del=ClearWordRight, Ctrl+0=ZoomNormal, Ctrl+A=SelectAll, Ctrl+B=BookmarkLine, Ctrl+C=Copy, Ctrl+E=MacroExecute, Ctrl+F=FindDialog, Ctrl+G=GoToDialog, Ctrl+H=ReplaceDialog, Ctrl+I=AutoIndentChars, Ctrl+M=MacroRecord, Ctrl+N=GoNextBookmark, Ctrl+R=Redo, Ctrl+U=UpperCase, Ctrl+V=Paste, Ctrl+X=Cut, Ctrl+Z=Undo, Ctrl+Add=ZoomIn, Ctrl+Subtract=ZoomOut, Ctrl+OemMinus=NavigateBackward, Ctrl+Shift+End=GoLastLineWithSelection, Ctrl+Shift+Home=GoFirstLineWithSelection, Ctrl+Shift+Left=GoWordLeftWithSelection, Ctrl+Shift+Right=GoWordRightWithSelection, Ctrl+Shift+B=UnbookmarkLine, Ctrl+Shift+C=CommentSelected, Ctrl+Shift+N=GoPrevBookmark, Ctrl+Shift+U=LowerCase, Ctrl+Shift+OemMinus=NavigateForward, Alt+Back=Undo, Alt+Up=MoveSelectedLinesUp, Alt+Down=MoveSelectedLinesDown, Alt+F=FindChar, Alt+Shift+Left=GoLeft_ColumnSelectionMode, Alt+Shift+Up=GoUp_ColumnSelectionMode, Alt+Shift+Right=GoRight_ColumnSelectionMode, Alt+Shift+Down=GoDown_ColumnSelectionMode</value>
   </data>
+  <data name="rtfLogic2.ServiceColors" mimetype="application/x-microsoft.net.object.binary.base64">
+    <value>
+        AAEAAAD/////AQAAAAAAAAAMAgAAAERGYXN0Q29sb3JlZFRleHRCb3gsIEN1bHR1cmU9bmV1dHJhbCwg
+        UHVibGljS2V5VG9rZW49ZmI4YWExMmI5OTRlZjYxYgwDAAAAUVN5c3RlbS5EcmF3aW5nLCBWZXJzaW9u
+        PTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49YjAzZjVmN2YxMWQ1MGEzYQUB
+        AAAAIkZhc3RDb2xvcmVkVGV4dEJveE5TLlNlcnZpY2VDb2xvcnMGAAAAKDxDb2xsYXBzZU1hcmtlckZv
+        cmVDb2xvcj5rX19CYWNraW5nRmllbGQoPENvbGxhcHNlTWFya2VyQmFja0NvbG9yPmtfX0JhY2tpbmdG
+        aWVsZCo8Q29sbGFwc2VNYXJrZXJCb3JkZXJDb2xvcj5rX19CYWNraW5nRmllbGQmPEV4cGFuZE1hcmtl
+        ckZvcmVDb2xvcj5rX19CYWNraW5nRmllbGQmPEV4cGFuZE1hcmtlckJhY2tDb2xvcj5rX19CYWNraW5n
+        RmllbGQoPEV4cGFuZE1hcmtlckJvcmRlckNvbG9yPmtfX0JhY2tpbmdGaWVsZAQEBAQEBBRTeXN0ZW0u
+        RHJhd2luZy5Db2xvcgMAAAAUU3lzdGVtLkRyYXdpbmcuQ29sb3IDAAAAFFN5c3RlbS5EcmF3aW5nLkNv
+        bG9yAwAAABRTeXN0ZW0uRHJhd2luZy5Db2xvcgMAAAAUU3lzdGVtLkRyYXdpbmcuQ29sb3IDAAAAFFN5
+        c3RlbS5EcmF3aW5nLkNvbG9yAwAAAAIAAAAF/P///xRTeXN0ZW0uRHJhd2luZy5Db2xvcgQAAAAEbmFt
+        ZQV2YWx1ZQprbm93bkNvbG9yBXN0YXRlAQAAAAkHBwMAAAAKAAAAAAAAAACWAAEAAfv////8////CgAA
+        AAAAAAAApAABAAH6/////P///woAAAAAAAAAAJYAAQAB+f////z///8KAAAAAAAAAACNAAEAAfj////8
+        ////CgAAAAAAAAAApAABAAH3/////P///woAAAAAAAAAAJYAAQAL
+</value>
+  </data>
   <data name="rtfLogic1.Hotkeys" xml:space="preserve">
     <value>Tab=IndentIncrease, Escape=ClearHints, PgUp=GoPageUp, PgDn=GoPageDown, End=GoEnd, Home=GoHome, Left=GoLeft, Up=GoUp, Right=GoRight, Down=GoDown, Insert=ReplaceMode, Del=DeleteCharRight, F3=FindNext, Shift+Tab=IndentDecrease, Shift+PgUp=GoPageUpWithSelection, Shift+PgDn=GoPageDownWithSelection, Shift+End=GoEndWithSelection, Shift+Home=GoHomeWithSelection, Shift+Left=GoLeftWithSelection, Shift+Up=GoUpWithSelection, Shift+Right=GoRightWithSelection, Shift+Down=GoDownWithSelection, Shift+Insert=Paste, Shift+Del=Cut, Ctrl+Back=ClearWordLeft, Ctrl+Space=AutocompleteMenu, Ctrl+End=GoLastLine, Ctrl+Home=GoFirstLine, Ctrl+Left=GoWordLeft, Ctrl+Up=ScrollUp, Ctrl+Right=GoWordRight, Ctrl+Down=ScrollDown, Ctrl+Insert=Copy, Ctrl+Del=ClearWordRight, Ctrl+0=ZoomNormal, Ctrl+A=SelectAll, Ctrl+B=BookmarkLine, Ctrl+C=Copy, Ctrl+E=MacroExecute, Ctrl+F=FindDialog, Ctrl+G=GoToDialog, Ctrl+H=ReplaceDialog, Ctrl+I=AutoIndentChars, Ctrl+M=MacroRecord, Ctrl+N=GoNextBookmark, Ctrl+R=Redo, Ctrl+U=UpperCase, Ctrl+V=Paste, Ctrl+X=Cut, Ctrl+Z=Undo, Ctrl+Add=ZoomIn, Ctrl+Subtract=ZoomOut, Ctrl+OemMinus=NavigateBackward, Ctrl+Shift+End=GoLastLineWithSelection, Ctrl+Shift+Home=GoFirstLineWithSelection, Ctrl+Shift+Left=GoWordLeftWithSelection, Ctrl+Shift+Right=GoWordRightWithSelection, Ctrl+Shift+B=UnbookmarkLine, Ctrl+Shift+C=CommentSelected, Ctrl+Shift+N=GoPrevBookmark, Ctrl+Shift+U=LowerCase, Ctrl+Shift+OemMinus=NavigateForward, Alt+Back=Undo, Alt+Up=MoveSelectedLinesUp, Alt+Down=MoveSelectedLinesDown, Alt+F=FindChar, Alt+Shift+Left=GoLeft_ColumnSelectionMode, Alt+Shift+Up=GoUp_ColumnSelectionMode, Alt+Shift+Right=GoRight_ColumnSelectionMode, Alt+Shift+Down=GoDown_ColumnSelectionMode</value>
+  </data>
+  <data name="rtfLogic1.ServiceColors" mimetype="application/x-microsoft.net.object.binary.base64">
+    <value>
+        AAEAAAD/////AQAAAAAAAAAMAgAAAERGYXN0Q29sb3JlZFRleHRCb3gsIEN1bHR1cmU9bmV1dHJhbCwg
+        UHVibGljS2V5VG9rZW49ZmI4YWExMmI5OTRlZjYxYgwDAAAAUVN5c3RlbS5EcmF3aW5nLCBWZXJzaW9u
+        PTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49YjAzZjVmN2YxMWQ1MGEzYQUB
+        AAAAIkZhc3RDb2xvcmVkVGV4dEJveE5TLlNlcnZpY2VDb2xvcnMGAAAAKDxDb2xsYXBzZU1hcmtlckZv
+        cmVDb2xvcj5rX19CYWNraW5nRmllbGQoPENvbGxhcHNlTWFya2VyQmFja0NvbG9yPmtfX0JhY2tpbmdG
+        aWVsZCo8Q29sbGFwc2VNYXJrZXJCb3JkZXJDb2xvcj5rX19CYWNraW5nRmllbGQmPEV4cGFuZE1hcmtl
+        ckZvcmVDb2xvcj5rX19CYWNraW5nRmllbGQmPEV4cGFuZE1hcmtlckJhY2tDb2xvcj5rX19CYWNraW5n
+        RmllbGQoPEV4cGFuZE1hcmtlckJvcmRlckNvbG9yPmtfX0JhY2tpbmdGaWVsZAQEBAQEBBRTeXN0ZW0u
+        RHJhd2luZy5Db2xvcgMAAAAUU3lzdGVtLkRyYXdpbmcuQ29sb3IDAAAAFFN5c3RlbS5EcmF3aW5nLkNv
+        bG9yAwAAABRTeXN0ZW0uRHJhd2luZy5Db2xvcgMAAAAUU3lzdGVtLkRyYXdpbmcuQ29sb3IDAAAAFFN5
+        c3RlbS5EcmF3aW5nLkNvbG9yAwAAAAIAAAAF/P///xRTeXN0ZW0uRHJhd2luZy5Db2xvcgQAAAAEbmFt
+        ZQV2YWx1ZQprbm93bkNvbG9yBXN0YXRlAQAAAAkHBwMAAAAKAAAAAAAAAACWAAEAAfv////8////CgAA
+        AAAAAAAApAABAAH6/////P///woAAAAAAAAAAJYAAQAB+f////z///8KAAAAAAAAAACNAAEAAfj////8
+        ////CgAAAAAAAAAApAABAAH3/////P///woAAAAAAAAAAJYAAQAL
+</value>
   </data>
   <metadata name="imageList1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>498, 17</value>

@@ -2127,8 +2127,7 @@ namespace WinAGI.Editor {
             for (int i = 0; i < strings.Count; i++) {
                 linetext = strings[i].Replace((char)Keys.Tab, ' ').Trim();
                 // trim it - also, skip comments
-                string cmt = "";
-                linetext = StripComments(linetext, ref cmt, true);
+                linetext = StripComments(linetext, out string cmt, true);
                 // ignore blanks
                 if (linetext.Length != 0) {
                     AGIToken token = WinAGIFCTB.TokenFromPos(linetext, 0);

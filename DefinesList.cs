@@ -139,8 +139,7 @@ namespace WinAGI.Engine {
             for (int i = 0; i < definelist.Length; i++) {
                 string linetext = definelist[i].Replace('\t', ' ').Trim();
                 // strip off comment
-                string s = "";
-                linetext = StripComments(linetext, ref s);
+                linetext = StripComments(linetext);
                 if (linetext.Length != 0) {
                     if (linetext.Left(8) == "#define ") {
                         linetext = linetext[8..].Trim();

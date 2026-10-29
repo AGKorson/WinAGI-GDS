@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.109
+        Version 3.0.0beta.110
     ==============================
 
 
@@ -26,7 +26,7 @@ The Help file included with this release contains detailed information on all th
 This is a beta release. Feedback, bug reports, and feature requests are welcome.
 
 ---
-  
+
 ### Known Issues:
 
 The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop Runtime version. If you encounter an error when starting WinAGI, please ensure that you have .NET Desktop Runtime 8 installed on your system. You can download it from the Microsoft website: https://dotnet.microsoft.com/en-us/download/dotnet/8.0. (Make sure to select '.NET Desktop Runtime 8' and the correct version for your system architecture, x86 or x64.)
@@ -34,6 +34,9 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.110:
+- added custom autoindent handler to logic editor that adjusts indents based on current WinAGISettings.CodeStyle setting
+
 Beta.109:
 - fixed bugs in game platform properties to correctly configure and run all supported game platforms
 
