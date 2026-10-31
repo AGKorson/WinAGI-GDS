@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.110
+        Version 3.0.0beta.111
     ==============================
 
 
@@ -34,6 +34,9 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.111:
+- refreshed platform options selection for the NAGI platform
+
 Beta.110:
 - added custom autoindent handler to logic editor that adjusts indents based on current WinAGISettings.CodeStyle setting
 

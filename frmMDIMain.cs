@@ -6354,7 +6354,11 @@ namespace WinAGI.Editor {
                 parameters = '"' + EditGame.GameDir + '"' + " " + EditGame.PlatformOpts;
                 break;
             case PlatformType.NAGI:
-                // no parameters for nagi; just run the program
+                // nagi parameters: gamedir
+                // NOTE: for v206 nagi, parameters are ignored, but since the interpreter 
+                // is run from the game's directory (the WorkingDirectory property of
+                // ProcessStartInfo) it will still run OK
+                parameters = '"' + EditGame.GameDir + '"' + " " + EditGame.PlatformOpts;
                 break;
             case PlatformType.Other:
                 // run with whatever is in Platform and PlatformOpts
@@ -6389,19 +6393,23 @@ namespace WinAGI.Editor {
                 if (failed) {
                     string errorMsg = "";
                     switch (EditGame.PlatformType) {
-                    case Engine.PlatformType.DosBox:
+                    case PlatformType.DosBox:
                         errorTitle = "DosBox Error";
                         errorMsg = "DosBox ";
                         break;
-                    case Engine.PlatformType.ScummVM:
+                    case PlatformType.ScummVM:
                         errorTitle = "ScummVM Error";
                         errorMsg = "ScummVM ";
                         break;
-                    case Engine.PlatformType.NAGI:
+                    case PlatformType.AGILE:
+                        errorTitle = "AGILE Error";
+                        errorMsg = "AGILE ";
+                        break;
+                    case PlatformType.NAGI:
                         errorTitle = "NAGI Error";
                         errorMsg = "NAGI ";
                         break;
-                    case Engine.PlatformType.Other:
+                    case PlatformType.Other:
                         errorTitle = "Run AGI Game Error";
                         errorMsg = "this program ";
                         break;
