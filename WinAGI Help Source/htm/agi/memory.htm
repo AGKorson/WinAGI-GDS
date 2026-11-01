@@ -216,7 +216,7 @@
 		<p>To avoid resetting the <a href="#room0">room.0</a> pointer improperly, you need to make sure no unnecessary resources are loaded prior to calling the <a href="..\commands\cmd_scriptsize.htm"><b>script.size</b></a> and <a href="..\commands\cmd_submitmenu.htm"><b>submit.menu</b></a> commands. Also, due to a bug in the <b>submit.menu</b> command, avoid any code that calls <b>submit.menu</b> more than once; the command does not affect the current menu at all, but it will reset the room.0 pointer. An example of this error existed in the original AGI Studio template game, when players were allowed to teleport to room 0 - this caused the initialization logic to run again (including <b>submit.menu</b>) which cause the tracer logic to be trapped in memory.</p>
 		<p>There is a bug in the <a href="..\commands\cmd_call.htm"><b>call</b></a> and <a href="..\commands\cmd_callv.htm"><b>call.v</b></a> commands that will cause a memory leak by improperly resetting the memory pointer if a <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> or <a href="..\commands\cmd_newroomv.htm"><b>new.room.v</b></a> command is called from within a logic that was not previously loaded. To avoid this, you need to be sure that <b>new.room</b> commands are never called unless the logic it is called from (and all logics in the call stack) is explicitly loaded before being called. See the <a href="..\commands\cmd_call.htm"><b>call</b></a> command for more details.</p>
 		<p>&nbsp;</p>
-		<p align="right"><font size="1">v3.0.0</font></p>
+		<p align="right"><font size="1">WinAGI Help Revision 1</font></p>
 		<p>&nbsp;</p>
 	</body>
 </html>

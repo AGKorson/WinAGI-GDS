@@ -17,7 +17,7 @@
 		<h3>Avoid Invalid Priority Values</h3>
 			<p>If you use an invalid value in a <b><a href="cmd_setpriority.htm">set.priority</a></b> or <b><a href="cmd_setpriorityv.htm">set.priority.v</a></b> command, you will get unexpected behavior. The algorithm that AGI uses to draw an object uses only the lower nibble (i.e. lower four bits, i.e., PRIORITY(actual)=PRIORITY(value) &amp; 0x0F), for setting the priority value for the object. But there is a bug in the function that AGI uses to determine the order in which to draw <a href="..\agi\screenobjs.htm">objects</a>. Objects with a fixed priority are assumed by AGI to have an 'effective' Y value based on the priority value, but AGI's algorithm for determining the order based on Y values has a bug which uses the whole byte. The effect of this is that objects with  priority values &gt; 22 won't draw on screen at all.</p>
 		<p>&nbsp;</p>
-		<p align="right"><font size="1">v3.0.0</font></p>
+		<p align="right"><font size="1">WinAGI Help Revision 1</font></p>
 		<p>&nbsp;</p>
 	</body>
 </html>

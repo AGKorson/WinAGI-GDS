@@ -29,7 +29,7 @@
 			<p>In early versions (<a href="version2.htm#2089">2.089</a> and <a href="version2.htm#2272">2.272</a>), they just drew a white box under the character first, so the XORed characters would correctly show as black on white, including extended characters. However, this only worked when printing messages using the <a href="..\commands\cmd_print.htm"><b>print</b></a> commands; with the <a href="..\commands\cmd_display.htm"><b>display</b></a> commands, the underlying graphics pixels are not cleared first, so any background color other than black will just XOR the text pixels on the screen as described above. In these versions, to get text to display as black on white correctly, you need to clear the area (by using <a href="..\commands\cmd_clearlines.htm"><b>clear.lines</b></a> or <a href="..\commands\cmd_cleartextrect.htm"><b>clear.text.rect</b></a>) before displaying the text.</p>
 			<p>Beginning with <a href="version2.htm#2411">version 2.411</a>, they switched to inverting the character's glyph pattern, and then draw it as white on black; so the actual character gets drawn in the background color (black) and the other pixels in the glyph get drawn in the foreground color (white), as described above in the Character Drawing Function discussion. A side effect of the way they did this is that it is not possible to draw text on background colors other than black or white on the graphics display in AGI.</p>
 		<p>&nbsp;</p>
-		<p align="right"><font size="1">v3.0.0</font></p>
+		<p align="right"><font size="1">WinAGI Help Revision 1</font></p>
 		<p>&nbsp;</p>
 	</body>
 </html>

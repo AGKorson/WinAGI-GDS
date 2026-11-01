@@ -78,7 +78,7 @@
 		<h3>Screen Object Number Validation</h3>
 			<p>It is important to be aware that AGI is notorious for failing to validate values passed to commands. In the case of screen objects, beginning in version 2.272, most of the AGI commands no longer verify that the value passed for screen objects is less than or equal to the maximum (exceptions are the <a href="..\commands\cmd_erase.htm"><b>erase</b></a>, <a href="..\commands\cmd_animateobj.htm"><b>animate.obj</b></a>, <a href="..\commands\cmd_restoregame.htm"><b>restore.game</b></a> and <a href="..\commands\cmd_draw.htm"><b>draw</b></a> commands). This means that when an invalid screen object value is passed to a command, AGI will attempt to read or write data in memory that is outside the screen object table. This will most certainly result in wildly unpredictable results, and usually ends up crashing AGI. As a game programmer it is extremely important that you verify all commands involving screen objects are passed a valid value. See the <a href="errors.htm">Internal Error Handling</a> topic for additional information on how AGI handles errors in logic code.</p>
 		<p>&nbsp;</p>
-		<p align="right"><font size="1">v3.0.0</font></p>
+		<p align="right"><font size="1">WinAGI Help Revision 1</font></p>
 		<p>&nbsp;</p>
 	</body>
 </html>

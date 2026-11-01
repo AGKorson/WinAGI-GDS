@@ -12,7 +12,7 @@
 		<p>The words data arrays are filled by AGI's <a href="keyboard.htm#parser">parser</a> each time the player presses the ENTER key. The arrays can hold up to 10 words; if more than 10 are entered, only the first 10 are kept; the rest are discarded.</p>
 		<p>An important programming note regarding the use of player entered words in AGI commands is that the word values are referenced by their index, with the first word being index 0, the second being index 1, etc. This is somewhat confusing, since <a href="variables.htm#reserved">reserved variable</a> <a href="v9.htm">v9 (unknown word number)</a> and the <b><a href="..\commands\cmd_print.htm">print</a></b> command <a href="messages.htm#format">format code</a> for words expect the first word to be "w1", not "w0". For example, if the first word in the array is "LOOK", and the second word is "DOOR", passing a value of '1' to the <a href="..\commands\cmd_wordtostring.htm"><b>word.to.string</b></a> will assign the text value "DOOR" to a string, but using "%w1" in a message will result in the text value "LOOK" being inserted into the message.</p>
 		<p>WinAGI handles this by requiring word arguments to be 'one-based' in the logic editor, and then converts them to 'zero-based' on compilation, to maintain consistency with the <a href="..\commands\cmd_print.htm"><b>print</a></b> command format codes.</p>
-		<p align="right"><font size="1">v3.0.0</font></p>
+		<p align="right"><font size="1">WinAGI Help Revision 1</font></p>
 		<p>&nbsp;</p>
 	</body>
 </html>

@@ -16,8 +16,7 @@
 		<AssemblyName>WinAGI</AssemblyName>
 
 		<!-- Versioning (safe, no duplicate attributes) -->
-		<VersionPrefix>3.0.0</VersionPrefix>
-		<VersionSuffix>beta.111</VersionSuffix>
+		<VersionPrefix>3.0.1</VersionPrefix>
 
 		<!-- Designer / build behavior -->
 		<ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>
